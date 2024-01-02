@@ -25,7 +25,7 @@ const Merchant = () => {
                     throw new Error('Missing required session data');
                 }
 
-                const response = await axios.get(`h${process.env.NEXT_PUBLIC_API_BASE_URL}merchant-product/filter?merchant_id=${id}`, {
+                const response = await axios.get(`https://api.foodia-dev.nuncorp.id/api/v1/merchant-product/filter?merchant_id=${id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },

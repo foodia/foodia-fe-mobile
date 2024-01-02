@@ -15,23 +15,23 @@ const FormCampaing = () => {
     const [uploadedFile, setUploadedFile] = useState(null);
     const [loading, setLoading] = useState(false); // Add loading state
 
-    useEffect(() => {
-        const role = sessionStorage.getItem('role');
-        const token = sessionStorage.getItem('token');
-        const status = sessionStorage.getItem('status');
-        const idDetonator = sessionStorage.getItem('id');
+    // useEffect(() => {
+    //     const role = sessionStorage.getItem('role');
+    //     const token = sessionStorage.getItem('token');
+    //     const status = sessionStorage.getItem('status');
+    //     const idDetonator = sessionStorage.getItem('id');
 
-        if (!role || !token || role !== 'detonator' || status !== 'approved' || !idDetonator) {
-            // Redirect to login if either role or token is missing or role is not 'detonator' or status is not 'approved'
-            sessionStorage.clear();
-            localStorage.removeItem('cart');
-            localStorage.removeItem('formData');
-            router.push('/login');
-        } else {
-            // Role is 'detonator' and token is present
-            setLoading(false); // Set loading to false once the check is complete
-        }
-    }, [router]);
+    //     if (!role || !token || role !== 'detonator' || status !== 'approved' || !idDetonator) {
+    //         // Redirect to login if either role or token is missing or role is not 'detonator' or status is not 'approved'
+    //         sessionStorage.clear();
+    //         localStorage.removeItem('cart');
+    //         localStorage.removeItem('formData');
+    //         router.push('/login/detonator');
+    //     } else {
+    //         // Role is 'detonator' and token is present
+    //         setLoading(false); // Set loading to false once the check is complete
+    //     }
+    // }, [router]);
 
     // Retrieve form data from local storage on component mount
     useEffect(() => {

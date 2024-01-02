@@ -4,11 +4,13 @@ import axios from 'axios';
 import Link from 'next/link';
 import Image from 'next/image';
 import { IconCirclePlus } from "@tabler/icons-react";
-import SlideCard from "../SlideCard";
 import styles from "@/styles/Home.module.css";
-import CardFood from "../CardFood";
+import CardFood from "@/components/CardFood";
+import SlideCard from "@/components/SlideCard";
+import CardPesanan from "@/components/CardPesanan";
 
-const Merchant = () => {
+
+const PesananMerchan = () => {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [dataApi, setDataApi] = useState([]);
@@ -45,7 +47,7 @@ const Merchant = () => {
                     throw new Error('Missing required session data');
                 }
 
-                const response = await axios.get(`https://api.foodia-dev.nuncorp.id/api/v1/merchant-product/filter?merchant_id=${id}`, {
+                const response = await axios.get(`https://api.foodia-dev.nuncorp.id/api/v1/order/filter?merchant_id=${id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },
@@ -86,9 +88,16 @@ const Merchant = () => {
         setSelectedStatus(status);
         setFilteredData(filtered);
     };
-
+    const formatDate = (inputDate) => {
+        const date = new Date(inputDate);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are zero-based
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
     return (
         <>
+
             <div className="container mx-auto mt-24 bg-white h-screen">
                 <div className="place-content-center">
                     <div className={`bg-green-50 rounded-lg ${styles.listMenu}`}>
@@ -136,24 +145,28 @@ const Merchant = () => {
                         status="Approved"
                     />
                 </div>
-                <div className="grid flex justify-end py-2 px-2">
-                    <Link href="/createmenu?step=1" className="bg-primary text-white rounded-lg w-28 flex h-10 items-center "><IconCirclePlus />Add Menu</Link>
-                </div>
                 <div className="place-content-center">
-                    <div className="flex my-2 p-2">
+                    <div className="flex my-5 p-2">
                         <div
                             className={`mr-2 grid justify-items-center ${selectedStatus === 'approved' ? 'text-blue-500 ' : ''}`}
                             onClick={() => handleFilterChange('approved')}
                         >
-                            <span>Menu Approved</span>
+                            <span>Pesanan</span>
                             <div className={`w-24 h-0.5 ${selectedStatus === 'approved' ? 'bg-blue-500 ' : 'bg-black'}`}></div>
                         </div>
                         <div
                             className={`mr-2 grid justify-items-center ${selectedStatus === 'listMenu' ? 'text-blue-500' : ''}`}
                             onClick={() => handleFilterChange('listMenu')}
                         >
-                            <span>List Menu</span>
+                            <span>Berlangsung</span>
                             <div className={`w-24 h-0.5 ${selectedStatus === 'listMenu' ? 'bg-blue-500 ' : 'bg-black'}`}></div>
+                        </div>
+                        <div
+                            className={`mr-2 grid justify-items-center ${selectedStatus === '' ? 'text-blue-500' : ''}`}
+                            onClick={() => handleFilterChange('')}
+                        >
+                            <span>History</span>
+                            <div className={`w-24 h-0.5 ${selectedStatus === '' ? 'bg-blue-500 ' : 'bg-black'}`}></div>
                         </div>
 
                     </div>
@@ -170,16 +183,17 @@ const Merchant = () => {
                 ) : (
                     <div className={`${styles.card}`}>
                         {filteredData.map((data) => (
-                            <CardFood
+                            <CardPesanan
                                 key={data.id}
                                 to={`/product/${data.id}`}
-                                img={data.images.length > 0 ? `${process.env.NEXT_PUBLIC_URL_STORAGE}${data.images[0].image_url}` : '/img/default-image.png'}
-                                title={data.name}
-                                description={data.description}
-                                date={data.created_at}
-                                status={data.status}
+                                img={data.campaign.image_url && data.campaign.image_url ? `${process.env.NEXT_PUBLIC_URL_STORAGE}${data.campaign.image_url}` : '/img/default-image.png'}
+                                title={data.campaign.event_name}
+                                productName={data.merchant_product.name}
+                                date={formatDate(data.merchant_product.created_at)}
                                 qty={data.qty}
-                                price={data.price}
+                                price={data.merchant_product.price}
+                                description={data.description}
+                                status={data.order_status}
                                 images={data.images}
                             />
                         ))}
@@ -196,4 +210,4 @@ const Merchant = () => {
     );
 }
 
-export default Merchant;
+export default PesananMerchan;

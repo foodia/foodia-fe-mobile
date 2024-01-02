@@ -40,7 +40,7 @@ const DetailCamp = ({ data }) => {
         <>
             <div className="container mx-auto mt-24 bg-white h-screen">
                 <div className="place-content-center">
-                    <img src={`/img/card/rectangle_70.png`} alt="" className="rounded-lg" style={{ width: '390px', height: '195px', objectFit: 'cover' }} />
+                    <img src={`${process.env.NEXT_PUBLIC_URL_STORAGE}${data.image_url}`} alt="" className="rounded-lg" style={{ width: '390px', height: '195px', objectFit: 'cover' }} />
                 </div>
 
                 <div className="place-content-center mt-4  p-2">

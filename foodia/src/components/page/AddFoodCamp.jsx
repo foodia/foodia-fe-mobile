@@ -53,9 +53,6 @@ const AddFood = () => {
         // Add more food items as needed
     ];
 
-    const handleButton = () => {
-        router.push('/tes');
-    }
 
     // Calculate total price and total quantity
     const totalHarga = cart.reduce((acc, item) => acc + item.total, 0).toFixed(2);
@@ -63,9 +60,9 @@ const AddFood = () => {
 
     return (
         <div className="container mx-auto mt-24 bg-white h-screen">
-            {/* <div className="flex justify-center w-full">
+            <div className="flex justify-center w-full">
                 <h1>Food Campaign</h1>
-            </div> */}
+            </div>
 
             <hr className="w-full h-1 mx-auto mt-2 bg-gray-300 border-0 rounded" />
 

@@ -12,16 +12,30 @@ const FormMenu = () => {
     const [Menu, setMenu] = useState(null);
 
     useEffect(() => {
+        const role = sessionStorage.getItem('role');
+        const token = sessionStorage.getItem('token');
+        const status = sessionStorage.getItem('status');
+        const idMerchant = sessionStorage.getItem('id');
+
+        if (!role || !token || role !== 'merchant' || status !== 'approved' || !idMerchant) {
+            // Redirect to login if either role or token is missing or role is not 'detonator' or status is not 'approved'
+            sessionStorage.clear();
+            localStorage.removeItem('cart');
+            localStorage.removeItem('formData');
+            router.push('/login/merchant');
+        }
+    }, [router]);
+
+    useEffect(() => {
         setStepNumber(parseInt(step) || 1);
     }, [router.query.step]);
 
-    useEffect(() => {
-        console.log('Registrasi Detonator:', Menu);
-    }, [Menu]);
+    // useEffect(() => {
+    //     console.log(':', Menu);
+    // }, [Menu]);
 
     let stepComponent;
     let setTitle;
-
 
     return (
         <div className="container mx-auto mt-24 bg-white h-screen text-primary">

@@ -11,3 +11,18 @@
     color: blue;
     cursor: pointer;
 }
+
+.img_card {
+    width: 90px;
+    height: 90px;
+    max-width: 90px;
+}
+
+.report_truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    /* Show only 3 lines */
+    -webkit-box-orient: vertical;
+}

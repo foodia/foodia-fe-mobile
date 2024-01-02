@@ -29,7 +29,7 @@ const LoginPage = ({ register = '', Btn = '' }) => {
             setLoading(true); // Set loading to true when starting authentication
 
             const response = await axios.post(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}auth/login`,
+                'https://api.foodia-dev.nuncorp.id/api/v1/auth/login',
                 {
                     email: inputEmail,
                     password: inputPassword,

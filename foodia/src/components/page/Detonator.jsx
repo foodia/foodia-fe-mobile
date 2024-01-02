@@ -18,19 +18,21 @@ const Detonator = () => {
     const observer = useRef();
 
     useEffect(() => {
-        const role = sessionStorage.getItem('role');
-        const token = sessionStorage.getItem('token');
-        const status = sessionStorage.getItem('status');
-        const id = sessionStorage.getItem('id');
+        const authenticateUser = async () => {
+            const role = sessionStorage.getItem('role');
+            const token = sessionStorage.getItem('token');
+            const status = sessionStorage.getItem('status');
+            const id = sessionStorage.getItem('id');
 
-        if (!role || !token || role !== 'detonator' || status !== 'approved' || !id) {
-            // Redirect to login if either role or token is missing or role is not 'detonator' or status is not 'approved'
-            sessionStorage.clear();
-            router.push('/login/detonator');
-        } else {
-            // Role is 'detonator' and token is present
-            setLoading(false); // Set loading to false once the check is complete
-        }
+            if (!role || !token || role !== 'detonator' || status !== 'approved' || !id) {
+                sessionStorage.clear();
+                router.push('/login/detonator');
+            } else {
+                setLoading(false);
+            }
+        };
+
+        authenticateUser();
     }, [router]);
 
     useEffect(() => {
@@ -43,11 +45,12 @@ const Detonator = () => {
                     throw new Error('Missing required session data');
                 }
 
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}campaign/filter?detonator_id=${id}`, {
+                const response = await axios.get(`https://api.foodia-dev.nuncorp.id/api/v1/campaign/filter?detonator_id=${id}&page=${page}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },
                 });
+
                 setDataApi(response.data.body);
                 setFilteredData(response.data.body);
                 setLoading(false);
@@ -56,29 +59,49 @@ const Detonator = () => {
                     setHasMore(false);
                 }
             } catch (error) {
-                console.error('Error fetching data:', error);
-                setLoading(false);
-
-                if (error.response && error.response.status === 401) {
-                    // Unauthorized error (e.g., token expired)
-                    sessionStorage.clear();
-                    router.push('/login/detonator');
-                }
+                handleRequestError(error);
             }
         };
 
         fetchData();
     }, [page]);
 
-    const handleFilterChange = (status) => {
+    const handleFilterChange = async (status) => {
         setSelectedStatus(status);
-        const filtered = dataApi.filter((data) => data.status === status);
-        setFilteredData(filtered);
+        try {
+            const token = sessionStorage.getItem('token');
+
+            if (status === 'NewCamp') {
+                setFilteredData(dataApi);
+            } else if (status === 'History') {
+                const resHistory = await axios.get(`https://api.foodia-dev.nuncorp.id/api/v1/history`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                setFilteredData(resHistory.data.body);
+            }
+        } catch (error) {
+            handleRequestError(error);
+        }
     };
 
-    useEffect(() => {
-        console.log('Data', filteredData);
-    }, [filteredData]);
+    const handleRequestError = (error) => {
+        console.error('Error fetching data:', error);
+
+        if (error.response && error.response.status === 401) {
+            sessionStorage.clear();
+            router.push('/login/detonator');
+        }
+
+        setLoading(false);
+        setFilteredData([]);
+    };
+
+    // useEffect(() => {
+    //     console.log('Data', filteredData);
+    // }, [filteredData]);
 
     return (
         <>
@@ -131,26 +154,20 @@ const Detonator = () => {
                     <div className="flex my-5">
 
                         <div
-                            className={`mr-2 grid justify-items-center ${selectedStatus === 'approved' ? 'text-blue-500 ' : ''}`}
-                            onClick={() => handleFilterChange('approved')}
+                            className={`mr-2 grid justify-items-center ${selectedStatus === 'NewCamp' ? 'text-blue-500 ' : ''}`}
+                            onClick={() => handleFilterChange('NewCamp')}
                         >
-                            <span>Approved</span>
-                            <div className={`w-24 h-0.5 ${selectedStatus === 'approved' ? 'bg-blue-500 ' : 'bg-black'}`}></div>
+                            <span>New Campaign</span>
+                            <div className={`w-24 h-0.5 ${selectedStatus === 'NewCamp' ? 'bg-blue-500 ' : 'bg-black'}`}></div>
                         </div>
                         <div
-                            className={`mr-2 grid justify-items-center ${selectedStatus === 'waiting' ? 'text-blue-500' : ''}`}
-                            onClick={() => handleFilterChange('waiting')}
+                            className={`mr-2 grid justify-items-center ${selectedStatus === 'History' ? 'text-blue-500' : ''}`}
+                            onClick={() => handleFilterChange('History')}
                         >
-                            <span>Waiting</span>
-                            <div className={`w-24 h-0.5 ${selectedStatus === 'waiting' ? 'bg-blue-500 ' : 'bg-black'}`}></div>
+                            <span>History</span>
+                            <div className={`w-24 h-0.5 ${selectedStatus === 'History' ? 'bg-blue-500 ' : 'bg-black'}`}></div>
                         </div>
-                        <div
-                            className={`grid justify-items-center ${selectedStatus === 'rejected' ? 'text-blue-500 ' : ''}`}
-                            onClick={() => handleFilterChange('rejected')}
-                        >
-                            <span>Rejected</span>
-                            <div className={`w-24 h-0.5 ${selectedStatus === 'rejected' ? 'bg-blue-500 ' : 'bg-black'}`}></div>
-                        </div>
+
                     </div>
                 </div>
 
@@ -170,7 +187,7 @@ const Detonator = () => {
                                 <CardCampaign
                                     key={dataFilter.id}
                                     to={`detonator/campaign/${dataFilter.id}`}
-                                    img={dataFilter.image_url}
+                                    img={`${process.env.NEXT_PUBLIC_URL_STORAGE}${dataFilter.image_url}`}
                                     title={dataFilter.event_name}
                                     description={dataFilter.description}
                                     date={dataFilter.event_date}

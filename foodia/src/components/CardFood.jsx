@@ -1,5 +1,5 @@
 import styles from "@/styles/Home.module.css";
-import { IconCircleCheck, IconClockFilled, IconPlaystationX } from "@tabler/icons-react";
+import { IconCircleCheck, IconClockFilled, IconPlaystationX, } from "@tabler/icons-react";
 import Link from "next/link";
 
 const CardFood = (props) => {
@@ -20,7 +20,7 @@ const CardFood = (props) => {
             case 'approved':
                 return <IconCircleCheck size={22} />;
             case 'rejected':
-                return <IconPlaystationx size={22} />;
+                return <IconPlaystationX size={22} />;
             default:
                 return null;
         }

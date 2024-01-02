@@ -1,60 +1,99 @@
-// src/components/page/FormDetonator.jsx
+// src/components/FormCampaing.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { StepOne, StepThree, StepTwo, Stepfour } from '../FormCampaing/StepMerchant';
+import Link from 'next/link';
+import { StepOne, StepTwo, StepThree, Stepfour } from '../FormMenu/Step';
+import AddFood from './AddFoodCamp';
+// import StepThree from '../FormCampaing/CreateCamp';
 
 
-const FormMerchant = () => {
+const FormMenu = () => {
     const router = useRouter();
     const { step } = router.query;
-    const [stepNumber, setStepNumber] = useState(1);
-    const [registrasiMerchant, setRegistrasiMerchant] = useState(null);
+    const [cart, setCart] = useState([]);
+    const [uploadedFile, setUploadedFile] = useState(null);
+    const [loading, setLoading] = useState(false); // Add loading state
 
     useEffect(() => {
-        setStepNumber(parseInt(step) || 1);
-    }, [router.query.step]);
+        const role = sessionStorage.getItem('role');
+        const token = sessionStorage.getItem('token');
+        const status = sessionStorage.getItem('status');
+        const idDetonator = sessionStorage.getItem('id');
+
+        if (!role || !token || role !== 'detonator' || status !== 'approved' || !idDetonator) {
+            // Redirect to login if either role or token is missing or role is not 'detonator' or status is not 'approved'
+            sessionStorage.clear();
+            localStorage.removeItem('cart');
+            localStorage.removeItem('formData');
+            router.push('/login');
+        } else {
+            // Role is 'detonator' and token is present
+            setLoading(false); // Set loading to false once the check is complete
+        }
+    }, [router]);
+
+    // Retrieve form data from local storage on component mount
+    useEffect(() => {
+        const storedFormData = localStorage.getItem('formData');
+        if (storedFormData) {
+            console.log(JSON.parse(storedFormData));
+        }
+    }, []);
+
 
     useEffect(() => {
-        console.log('Registrasi Merchant:', registrasiMerchant);
-    }, [registrasiMerchant]);
+        // Membaca nilai dari localStorage setelah rendering pada sisi klien
+        const cartData = JSON.parse(localStorage.getItem('cart')) || [];
+        setCart(cartData);
+    }, []); // Empty dependency array ensures that this effect runs only once after the initial render
+
+    const updateCart = (updatedCart) => {
+        setCart(updatedCart);
+        // Menyimpan data keranjang ke localStorage setelah diperbarui
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+    };
 
     let stepComponent;
     let setTitle;
 
-    switch (stepNumber) {
-        case 1:
-            stepComponent = <StepOne setRegistrasiMerchant={setRegistrasiMerchant} registrasiMerchant={registrasiMerchant} />;
-            setTitle = 'Register Detonator';
-            break;
-        case 2:
-            stepComponent = <StepTwo setRegistrasiMerchant={setRegistrasiMerchant} registrasiMerchant={registrasiMerchant} />;
-            setTitle = 'Identifikasi Pribadi';
-            break;
-        case 3:
-            stepComponent = <StepThree setRegistrasiMerchant={setRegistrasiMerchant} registrasiMerchant={registrasiMerchant} />;
-            setTitle = 'Konfirmasi OTP';
-            break;
-        case 4:
-            stepComponent = <Stepfour setRegistrasiMerchant={setRegistrasiMerchant} registrasiMerchant={registrasiMerchant} />;
-            setTitle = 'Konfirmasi OTP';
-            break;
-        // Add cases for other steps if needed
-        default:
-            stepComponent = <div>Invalid step value</div>;
-            setTitle = 'Default Title';
-            break;
+    if (step === '1') {
+        stepComponent = <StepOne setUploadedFile={setUploadedFile} uploadedFile={uploadedFile} />;
+        setTitle = 'Tanggal Pelaksanaan';
+    } else if (step === '2') {
+        stepComponent = <StepTwo />;
+        setTitle = 'Lokasi Pelaksanaan';
+    } else if (step === '3') {
+        stepComponent = <StepThree cart={cart} updateCart={updateCart} setUploadedFile={setUploadedFile} uploadedFile={uploadedFile} />;
+        setTitle = 'Tambah Menu Makan';
+    } else if (step === '4') {
+        stepComponent = <Stepfour cart={cart} setCart={setCart} setUploadedFile={setUploadedFile} uploadedFile={uploadedFile} />;
+        setTitle = 'Tambah Menu Makan';
+    } else {
+        stepComponent = <div>Invalid step value</div>;
+        setTitle = 'Default Title';
     }
-    // console.log('Combined Data:', registrasiMerchant);
+
+    // Update local storage when formData changes
+    const updateLocalStorage = (data) => {
+        localStorage.setItem('formData', JSON.stringify(data));
+    };
 
     return (
-        <div className="container mx-auto mt-24 bg-white h-screen text-primary">
-            {/* ... (your existing code) */}
-            <div className="grid justify-items-center w-full">
-                {stepComponent}
+        <div className="container mx-auto mt-24 bg-white h-full text-primary">
+            <div className="flex justify-center">
+                <h1 className='text-3xl font-bold'>FOODIA </h1>
+            </div>
+            <div className="flex justify-center">
+                <h1 className='text-xl font-bold'>{setTitle}</h1>
+            </div>
+            <hr className="w-full h-1 mx-auto mt-2 bg-gray-300 border-0 rounded" />
+            <div className="grid justify-items-center w-full h-">
+                {/* Pass the updateLocalStorage function to each step component */}
+                {React.cloneElement(stepComponent, { updateLocalStorage })}
             </div>
         </div>
     );
-};
+}
 
-export default FormMerchant;
+export default FormMenu;

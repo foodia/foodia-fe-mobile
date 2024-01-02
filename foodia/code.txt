@@ -339,3 +339,5 @@ const otp = {
         //     console.log('data registrasi', registrasiDetonator);
         //     setCodes(['', '', '', '', '', '']);
         // }
+
+        img={data.images.length > 0 ? `${process.env.NEXT_PUBLIC_URL_STORAGE}${data.images[0].image_url}` : '/img/default-image.png'}

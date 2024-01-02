@@ -457,7 +457,7 @@ function StepThree({ registrasiDetonator, setRegistrasiDetonator }) {
         console.log('OTP:', otp);
         try {
             const response = await axios.post(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}auth/verify-otp`,
+                'https://api.foodia-dev.nuncorp.id/api/v1/auth/verify-otp',
                 otp,
                 {
                     headers: {

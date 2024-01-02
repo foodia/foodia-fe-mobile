@@ -1,8 +1,11 @@
 import styles from "@/styles/Campaign.module.css"
 import { IconClock, IconCalendarEvent, IconCreditCard, IconClipboardCheck, IconSoup, IconArrowNarrowRight, IconBellRingingFilled, IconCaretDown, IconCaretUp } from '@tabler/icons-react';
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useState } from 'react';
 const DetailPage = () => {
+    const router = useRouter();
+    const { id } = router.query;
     const [showFullText, setShowFullText] = useState(false);
 
     const toggleReadMore = () => {
@@ -68,7 +71,7 @@ const DetailPage = () => {
                             </div>
                         </div>
                     </Link>
-                    <a href="#" className="w-full bg-white hover:bg-gray-100  text-black rounded-lg inline-flex items-center px-4 py-2.5 mt-2">
+                    <Link href={`/report/${id}`} className="w-full bg-white hover:bg-gray-100  text-black rounded-lg inline-flex items-center px-4 py-2.5 mt-2">
                         <div className="flex justify-between w-full">
                             <div className="flex">
                                 <div className="text-left place-items-start">
@@ -80,7 +83,7 @@ const DetailPage = () => {
                                 <IconArrowNarrowRight className=" grid grid-cols-3 gap-4 place-items-end text-gray-500" />
                             </div>
                         </div>
-                    </a>
+                    </Link>
                 </div>
                 <hr className="w-full h-1 mx-auto mt-2 bg-gray-300 border-0 rounded" />
                 <div className="block mt-1 p-6 bg-white rounded-lg shadow bg-blue-100">

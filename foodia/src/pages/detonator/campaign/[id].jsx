@@ -12,7 +12,7 @@ const Campaign = () => {
         const token = sessionStorage.getItem('token');
         const fetchData = async () => {
             try {
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}campaign/fetch/${id}`, {
+                const response = await axios.get(`https://api.foodia-dev.nuncorp.id/api/v1/campaign/fetch/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },

@@ -42,11 +42,7 @@ function StepOne({ updateLocalStorage, setUploadedFile, uploadedFile }) {
         const parsedFormData = storedFormData ? JSON.parse(storedFormData) : {};
         return parsedFormData.Waktu || '';
     });
-    const [NominalTarget, setNominalTarget] = useState(() => {
-        const storedFormData = localStorage.getItem('formData');
-        const parsedFormData = storedFormData ? JSON.parse(storedFormData) : {};
-        return parsedFormData.NominalTarget || '';
-    });
+
     const [Description, setDescription] = useState(() => {
         const storedFormData = localStorage.getItem('formData');
         const parsedFormData = storedFormData ? JSON.parse(storedFormData) : {};
@@ -74,9 +70,7 @@ function StepOne({ updateLocalStorage, setUploadedFile, uploadedFile }) {
     const handleWaktuChange = (event) => {
         setWaktu(event.target.value);
     };
-    const handleNominalTargetChange = (event) => {
-        setNominalTarget(event.target.value);
-    };
+
     const handleDescriptionChange = (event) => {
         setDescription(event.target.value);
     };
@@ -109,7 +103,6 @@ function StepOne({ updateLocalStorage, setUploadedFile, uploadedFile }) {
             TypeEvent,
             Tanggal,
             Waktu,
-            NominalTarget,
             Description,
         };
 
@@ -179,9 +172,9 @@ function StepOne({ updateLocalStorage, setUploadedFile, uploadedFile }) {
                             onChange={handleTypeEventChange}
                             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 m-1"
                         >
-                            <option value="TI">TI</option>
-                            <option value="SI">SI</option>
-                            <option value="BD">BD</option>
+                            <option >---Pilih Type Event---</option>
+                            <option value="one_time">One Time</option>
+                            <option value="reguler">Reguler</option>
                         </select>
                     </label>
                 </div>
@@ -214,20 +207,7 @@ function StepOne({ updateLocalStorage, setUploadedFile, uploadedFile }) {
                         placeholder="Waktu"
                     />
                 </div>
-                <div className="mb-2">
-                    <label htmlFor="NominalTarget" className="text-sm font-medium text-gray-900">
-                        Nominal Target
-                    </label>
-                    <InputForm
-                        cssInput="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 m-1"
-                        label="NominalTarget"
-                        type="number"
-                        name="NominalTarget"
-                        value={NominalTarget}
-                        onChange={handleNominalTargetChange}
-                        placeholder="Nominal Target"
-                    />
-                </div>
+
                 <div className="mb-2">
                     <label htmlFor="Description" className="text-sm font-medium text-gray-900">
                         Description
@@ -368,6 +348,8 @@ function StepTwo({ updateLocalStorage }) {
         // upload data to local storage
         updateLocalStorage(formData);
 
+        console.log(formData);
+
         router.push(`creatcampaign?step=3`);
     };
 
@@ -465,52 +447,80 @@ function StepTwo({ updateLocalStorage }) {
         </>
     )
 }
-function StepThree({ cart, updateCart, stepForm = 0, setUploadedFile, uploadedFile }) {
+function StepThree({ cart, updateCart, setUploadedFile, uploadedFile }) {
     const router = useRouter();
+    const totalCartPrice = cart.reduce((total, item) => total + item.total, 0);
+    const totalCartQuantity = cart.reduce((total, item) => total + item.quantity, 0);
     const groupedCart = cart.reduce((acc, item) => {
-        const storeName = item.store;
-        if (!acc[storeName]) {
-            acc[storeName] = [];
+        const IdMerchan = item.merchant_id;
+        if (!acc[IdMerchan]) {
+            acc[IdMerchan] = [];
         }
-        acc[storeName].push(item);
+        acc[IdMerchan].push(item);
         return acc;
     }, {});
 
-    const handleDecrease = (storeName, itemId) => {
+    const handleDecrease = (IdMerchan, itemId) => {
         const updatedCart = [...cart];
-        const itemIndex = updatedCart.findIndex(item => item.store === storeName && item.id === itemId);
 
-        if (itemIndex !== -1 && updatedCart[itemIndex].quantity > 1) {
-            updatedCart[itemIndex].quantity -= 1;
-            updatedCart[itemIndex].total = updatedCart[itemIndex].quantity * updatedCart[itemIndex].price;
-            const totalCartPrice = updatedCart.reduce((total, item) => total + item.total, 0);
-            const totalCartQuantity = updatedCart.reduce((total, item) => total + item.quantity, 0);
-            updateCart(updatedCart, totalCartPrice, totalCartQuantity);
-        } else if (itemIndex !== -1 && updatedCart[itemIndex].quantity === 1) {
-            // Jika jumlah item mencapai 1, maka jalankan handleRemove
-            handleRemove(storeName, itemId);
+        const itemIndex = updatedCart.findIndex(item => item.merchant_id === parseInt(IdMerchan) && item.id === itemId);
+
+        console.log('IdMerchan:', IdMerchan);
+        console.log('itemId:', itemId);
+        console.log('Data updatedCart:', updatedCart);
+        console.log('itemIndex:', itemIndex);
+
+        if (itemIndex !== -1) {
+            const updatedItem = { ...updatedCart[itemIndex] };
+
+            if (updatedItem.quantity > 1) {
+                updatedItem.quantity -= 1;
+                updatedItem.total = updatedItem.quantity * updatedItem.price;
+
+                updatedCart[itemIndex] = updatedItem;
+
+                const totalCartPrice = updatedCart.reduce((total, item) => total + item.total, 0);
+                const totalCartQuantity = updatedCart.reduce((total, item) => total + item.quantity, 0);
+
+                console.log('updatedCart after decrease:', updatedCart);
+
+                updateCart(updatedCart, totalCartPrice, totalCartQuantity);
+            } else {
+                handleRemove(IdMerchan, itemId);
+            }
+        } else {
+            console.warn('Item not found in cart:', { IdMerchan, itemId });
         }
     };
 
-    const handleIncrease = (storeName, itemId) => {
+    const handleIncrease = (IdMerchan, itemId) => {
         const updatedCart = [...cart];
-        const itemIndex = updatedCart.findIndex(item => item.store === storeName && item.id === itemId);
+        const itemIndex = updatedCart.findIndex(item => item.merchant_id === parseInt(IdMerchan) && item.id === itemId);
 
         if (itemIndex !== -1) {
             updatedCart[itemIndex].quantity += 1;
             updatedCart[itemIndex].total = updatedCart[itemIndex].quantity * updatedCart[itemIndex].price;
+
             const totalCartPrice = updatedCart.reduce((total, item) => total + item.total, 0);
             const totalCartQuantity = updatedCart.reduce((total, item) => total + item.quantity, 0);
+
             updateCart(updatedCart, totalCartPrice, totalCartQuantity);
         }
     };
-    const handleRemove = (storeName, itemId) => {
-        const updatedCart = cart.filter(item => !(item.store === storeName && item.id === itemId));
-        updateCart(updatedCart);
+
+    const handleRemove = (IdMerchan, itemId) => {
+        const updatedCart = cart.filter(item => !(item.merchant_id === parseInt(IdMerchan) && item.id === itemId));
+        const totalCartPrice = updatedCart.reduce((total, item) => total + item.total, 0);
+        const totalCartQuantity = updatedCart.reduce((total, item) => total + item.quantity, 0);
+        updateCart(updatedCart, totalCartPrice, totalCartQuantity);
     };
+
     const handleSubmit = async () => {
+        console.log('data', cart);
         try {
             // Retrieve formData from local storage
+            const totalCartPrice = cart.reduce((total, item) => total + item.total, 0);
+            const totalCartQuantity = cart.reduce((total, item) => total + item.quantity, 0);
             const campData = JSON.parse(localStorage.getItem('formData'));
             const detonator_id = sessionStorage.getItem('id');
             const token = sessionStorage.getItem('token');
@@ -520,7 +530,6 @@ function StepThree({ cart, updateCart, stepForm = 0, setUploadedFile, uploadedFi
             formData.append('destination', 'campaign');
             formData.append('file', uploadedFile);
 
-            // Make API call to upload the media
             const mediaUploadResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}media/upload`, formData, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -530,6 +539,13 @@ function StepThree({ cart, updateCart, stepForm = 0, setUploadedFile, uploadedFi
             console.log('API Response media/upload:', mediaUploadResponse.data.body.file_url);
 
             if (mediaUploadResponse.status === 200) {
+
+                const products = cart.map(item => ({
+                    merchant_id: parseInt(item.merchant_id),
+                    merchant_product_id: parseInt(item.id),
+                    qty: parseInt(item.quantity),
+                }));
+
                 const eventData = {
                     detonator_id: parseInt(detonator_id),
                     event_name: campData.eventName,
@@ -537,17 +553,21 @@ function StepThree({ cart, updateCart, stepForm = 0, setUploadedFile, uploadedFi
                     event_date: campData.Tanggal,
                     event_time: campData.Waktu, // Check if you intended to use it twice
                     description: campData.Description,
-                    donation_target: parseFloat(campData.NominalTarget),
+                    donation_target: parseFloat(totalCartPrice),
                     province: campData.province,
                     city: campData.city,
                     sub_district: campData.sub_district ?? "-",
                     postal_code: campData.postal_code ?? "-",
-                    address: campData.Jalan,
+                    address: campData.location,
                     latitude: String(campData.coordinates.lat),
                     longitude: String(campData.coordinates.lng),
                     image_url: mediaUploadResponse.data.body.file_url, // Set to the actual file_url
-                    // cart: cart,
+                    food_required: parseInt(totalCartQuantity),
+                    food_total: parseInt(totalCartQuantity),
+                    products: products,
                 };
+
+                console.log('cek data', eventData);
 
                 try {
                     const createCampaignResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}campaign/create`, eventData, {
@@ -587,21 +607,29 @@ function StepThree({ cart, updateCart, stepForm = 0, setUploadedFile, uploadedFi
         } catch (error) {
             console.error('API Error:', error);
             if (error.response && error.response.status === 401) {
-                router.push('/login');
+                router.push('/login/detector');
                 localStorage.removeItem('cart');
                 localStorage.removeItem('formData');
             } else {
-                // Handle other errors if needed
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Image Gagal Upload',
+                    text: 'Gagal Upload Image Mohon Coba Lagi',
+                    showConfirmButton: false,
+                    timer: 2000,
+                });
+
+                setTimeout(() => {
+                    router.push('/creatcampaign?step=1');
+                }, 2000);
             }
         }
     };
 
     const handleLink = () => {
         router.push('/creatcampaign?step=4');
-        console.log('file gambar', uploadedFile);
     };
-    const totalCartPrice = cart.reduce((total, item) => total + item.total, 0);
-    const totalCartQuantity = cart.reduce((total, item) => total + item.quantity, 0);
+
     // localStorage.removeItem('formData');
     // localStorage.removeItem('cart');
 
@@ -653,11 +681,11 @@ function StepThree({ cart, updateCart, stepForm = 0, setUploadedFile, uploadedFi
 
                         <hr className="w-full h-1 mx-auto mt-2 bg-gray-300 border-0 rounded" />
                         {Object.keys(groupedCart).length > 0 ? (
-                            Object.keys(groupedCart).map((storeName, storeIndex) => (
+                            Object.keys(groupedCart).map((IdMerchan, storeIndex) => (
 
                                 <div key={storeIndex} className="mb-4 p-2">
-                                    <h2 className="text-xl font-semibold my-2">{storeName}</h2>
-                                    {groupedCart[storeName].map((item, itemIndex) => (
+                                    <h2 className="text-xl font-semibold my-2">ID :{IdMerchan}</h2>
+                                    {groupedCart[IdMerchan].map((item, itemIndex) => (
                                         <div key={itemIndex} className="w-full bg-white text-black rounded-lg inline-flex items-center px-4 py-2.5 mb-2 w-full border border-red-1">
                                             <div className="flex justify-between w-full">
                                                 <div className="flex">
@@ -680,14 +708,14 @@ function StepThree({ cart, updateCart, stepForm = 0, setUploadedFile, uploadedFi
                                                     <div className="flex items-center mt-2">
                                                         <button
                                                             className="bg-blue-500 text-white px-2 py-1 rounded-l hover:bg-blue-600 focus:outline-none focus:shadow-outline-blue active:bg-blue-800"
-                                                            onClick={() => handleDecrease(storeName, item.id)}
+                                                            onClick={() => handleDecrease(IdMerchan, item.id)}
                                                         >
                                                             -
                                                         </button>
                                                         <span className="px-4">{item.quantity}</span>
                                                         <button
                                                             className="bg-blue-500 text-white px-2 py-1 rounded-r hover:bg-blue-600 focus:outline-none focus:shadow-outline-blue active:bg-blue-800"
-                                                            onClick={() => handleIncrease(storeName, item.id)}
+                                                            onClick={() => handleIncrease(IdMerchan, item.id)}
                                                         >
                                                             +
                                                         </button>
@@ -720,7 +748,7 @@ function StepThree({ cart, updateCart, stepForm = 0, setUploadedFile, uploadedFi
     )
 }
 
-function Stepfour({ cart, setCart, stepForm = 0, setUploadedFile, uploadedFile }) {
+function Stepfour({ cart, setCart, setUploadedFile, uploadedFile }) {
     const [groupedFoods, setGroupedFoods] = useState({});
     const router = useRouter();
 
@@ -729,17 +757,28 @@ function Stepfour({ cart, setCart, stepForm = 0, setUploadedFile, uploadedFile }
         const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
         setCart(storedCart);
 
-        // Group foods by store
-        const groupedByStore = foods.reduce((acc, food) => {
-            const { store } = food;
-            if (!acc[store]) {
-                acc[store] = [];
+        // Fetch data from API
+        axios.get('https://api.foodia-dev.nuncorp.id/api/v1/merchant-product/filter', {
+            headers: {
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsInNlc3Npb24iOiI1NDY0YmNlNDVmZGViZDJjYzc3ZDU5YmZkN2EyODBmMGRiZWY4MzgxYjgyNzQzNTUwMWYwOTA5M2Q4YjkwOTNmIiwiZXhwIjoxNzA0NDI1NDQyfQ.wiEQeboDpR133mzBSd7P5e9fRwKiEsOW66vHhzSPWkc'
             }
-            acc[store].push(food);
-            return acc;
-        }, {});
-        setGroupedFoods(groupedByStore);
-    }, []);
+        })
+            .then((response) => {
+                // Group foods by store
+                const groupedByMerchant = response.data.body.reduce((acc, food) => {
+                    const { merchant_id } = food;
+                    if (!acc[merchant_id]) {
+                        acc[merchant_id] = [];
+                    }
+                    acc[merchant_id].push(food);
+                    return acc;
+                }, {});
+                setGroupedFoods(groupedByMerchant);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }, [setCart]);
 
     const addToCart = (food) => {
         const existingItemIndex = cart.findIndex((item) => item.id === food.id);
@@ -758,22 +797,16 @@ function Stepfour({ cart, setCart, stepForm = 0, setUploadedFile, uploadedFile }
             localStorage.setItem('cart', JSON.stringify(updatedCart));
         }
     };
+
     const handleLink = () => {
         router.push('/creatcampaign?step=3');
-        console.log('file gambar', uploadedFile);
-    };
 
-    const foods = [
-        { id: 1, name: 'Food 1', price: 19.99, imageUrl: 'https://api.lorem.space/image/face?w=100&h=100', store: 'Surya', description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit.', capacity: 10 },
-        { id: 2, name: 'Food 2', price: 12.56, imageUrl: '/food2.jpg', store: 'Surya', description: 'lorem ipsum dolor sit amet', capacity: 10 },
-        { id: 3, name: 'Food 3', price: 854.95, imageUrl: '/food3.jpg', store: 'Surya', description: 'Lorem ipsum dolor sit amet consectetur .', capacity: 10 },
-        { id: 4, name: "Gadget X", price: 149.99, imageUrl: "/gadgetX.jpg", store: "Tech Haven", description: "Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.", capacity: 5 },
-        // Add more food items as needed
-    ];
+    };
 
     // Calculate total price and total quantity
     const totalHarga = cart.reduce((acc, item) => acc + item.total, 0).toFixed(2);
     const jumlahMakanan = cart.reduce((acc, item) => acc + item.quantity, 0);
+
     return (
         <div className="">
             <div className="items-center justify-center mt-1 w-full">
@@ -794,13 +827,13 @@ function Stepfour({ cart, setCart, stepForm = 0, setUploadedFile, uploadedFile }
             {/* <hr className="w-full h-1 mx-auto mt-2 bg-gray-300 border-0 rounded" /> */}
 
             <div className="items-center justify-center mt-2 w-full">
-                {Object.keys(groupedFoods).map((storeName) => (
+                {Object.keys(groupedFoods).map((IdMerchan) => (
                     <>
                         <hr className="w-full h-1 mx-auto mt-2 bg-gray-300 border-0 rounded" />
-                        <div key={storeName} className="mb-4">
-                            <h2 className="text-xl font-bold">Store :{storeName}</h2>
-                            {groupedFoods[storeName].map((food) => (
-                                <AddFoodCamp key={food.id} {...food} addToCart={addToCart} />
+                        <div key={IdMerchan} className="mb-4">
+                            <h2 className="text-xl font-bold">Store :{IdMerchan}</h2>
+                            {groupedFoods[IdMerchan].map((food) => (
+                                <AddFoodCamp key={groupedFoods.id} {...food} addToCart={addToCart} />
                             ))}
 
                         </div>
